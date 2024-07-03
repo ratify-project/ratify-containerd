@@ -1,0 +1,99 @@
+# Upgrades/installs all components for ratify containerd plugin
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nsenter-actions
+  labels:
+    app: nsenter
+data:
+  containerd-upgrade: |
+    #!/usr/bin/env bash
+    set -xe
+
+    if [[ -f /opt/sentinel ]]; then
+       if [[ ! -z "$1" ]]; then
+         echo "received positional argument, forcing cleanup"
+         rm /opt/sentinel || true
+       else
+         echo "Already ran, exiting"
+         exit 0
+       fi
+    fi
+
+    # Install 2.0.0-rc.3 containerd
+    curl -LO https://github.com/containerd/containerd/releases/download/v2.0.0-rc.3/containerd-2.0.0-rc.3-linux-amd64.tar.gz
+    tar -xvf containerd-2.0.0-rc.3-linux-amd64.tar.gz
+    mv bin/* /usr/bin/
+    rm -rf containerd-2.0.0-rc.3-linux-amd64.tar.gz bin/
+
+    # Install jq
+    curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 --output /usr/bin/jq && chmod +x /usr/bin/jq
+
+    # Install ConfigMap watcher
+    mkdir -p ~/.ratify/bin
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/configmap-prototype/bin/configmap-watcher -o ~/.ratify/bin/configmap-watcher
+    chmod +x ~/.ratify/bin/configmap-watcher
+    curl -L https://raw.githubusercontent.com/akashsinghal/ratify-containerd/configmap-prototype/configmap-watcher.service -o /etc/systemd/system/configmap-watcher.service
+    systemctl daemon-reload
+    systemctl enable configmap-watcher
+    systemctl start configmap-watcher
+
+    # Install Ratify binaries
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/configmap-prototype/ratify -o ~/.ratify/bin/ratify
+    chmod +x ~/.ratify/bin/ratify
+
+    # Install Ratify Containerd plugin
+    mkdir -p ~/.containerd/verification-plugin-bin
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/configmap-prototype/plugin/ratify.sh -o ~/.containerd/verification-plugin-bin/ratify
+    chmod +x ~/.containerd/verification-plugin-bin/ratify
+    
+    # Update containerd config
+
+    touch /opt/sentinel
+    systemctl restart containerd
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: &name containerd-upgrade
+  labels:
+    app: *name
+spec:
+  selector:
+    matchLabels:
+      app: *name
+  template:
+    metadata:
+      labels:
+        app: *name
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - image: docker.io/alexeldeib/nsenter:latest # https://github.com/alexeldeib/azbench/blob/main/images/nsenter/entrypoint.sh
+        imagePullPolicy: Always
+        name: *name
+        args: ["containerd-upgrade"]
+        resources:
+          requests:
+            cpu: 0.5
+            memory: 2000Mi
+          limits:
+            cpu: 0.5
+            memory: 2000Mi
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: actions
+          mountPath: "/opt/actions"
+        - name: hostmount
+          mountPath: "/mnt/actions"
+      volumes:
+      - name: hostmount
+        hostPath:
+          path: /opt/actions
+          type: DirectoryOrCreate
+      - name: actions
+        configMap:
+          name: nsenter-actions

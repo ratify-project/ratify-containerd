@@ -1,0 +1,11 @@
+[Unit]
+Description=ConfigMap Watcher for Ratify
+
+[Service]
+ExecStart=/root/.ratify/bin/configmap-watcher
+Type=simple
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
