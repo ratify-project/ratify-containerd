@@ -21,34 +21,43 @@ data:
        fi
     fi
 
-    # Install 2.0.0-rc.3 containerd
-    curl -LO https://github.com/containerd/containerd/releases/download/v2.0.0-rc.3/containerd-2.0.0-rc.3-linux-amd64.tar.gz
-    tar -xvf containerd-2.0.0-rc.3-linux-amd64.tar.gz
-    mv bin/* /usr/bin/
-    rm -rf containerd-2.0.0-rc.3-linux-amd64.tar.gz bin/
+    # Install container version from https://github.com/containerd/containerd/pull/8515
+    mkdir -p ~/bin
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/bin/ctr --output ~/bin/ctr
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/bin/containerd --output ~/bin/containerd
+    mv ~/bin/* /usr/bin/
+    chmod +x /usr/bin/ctr
+    chmod +x /usr/bin/containerd
+    rm -rf ~/bin
 
     # Install jq
     curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 --output /usr/bin/jq && chmod +x /usr/bin/jq
 
+    # Install dasel
+    curl -LO https://github.com/TomWright/dasel/releases/download/v2.8.1/dasel_linux_amd64 --output /usr/bin/dasel && chmod +x /usr/bin/dasel
+
     # Install ConfigMap watcher
     mkdir -p ~/.ratify/bin
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/configmap-prototype/bin/configmap-watcher -o ~/.ratify/bin/configmap-watcher
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/bin/configmap-watcher -o ~/.ratify/bin/configmap-watcher
     chmod +x ~/.ratify/bin/configmap-watcher
-    curl -L https://raw.githubusercontent.com/akashsinghal/ratify-containerd/configmap-prototype/configmap-watcher.service -o /etc/systemd/system/configmap-watcher.service
+    curl -L https://raw.githubusercontent.com/akashsinghal/ratify-containerd/containerd-prototype/configmap-watcher.service -o /etc/systemd/system/configmap-watcher.service
     systemctl daemon-reload
     systemctl enable configmap-watcher
     systemctl start configmap-watcher
 
     # Install Ratify binaries
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/configmap-prototype/ratify -o ~/.ratify/bin/ratify
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/bin/ratify -o ~/.ratify/bin/ratify
     chmod +x ~/.ratify/bin/ratify
 
     # Install Ratify Containerd plugin
     mkdir -p ~/.containerd/verification-plugin-bin
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/configmap-prototype/plugin/ratify.sh -o ~/.containerd/verification-plugin-bin/ratify
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/plugin/ratify.sh -o ~/.containerd/verification-plugin-bin/ratify
     chmod +x ~/.containerd/verification-plugin-bin/ratify
     
     # Update containerd config
+    dasel put -f /etc/containerd/config.toml -r toml '.plugins.io\.containerd\.image-verifier\.v1\.bindir' -t toml -v 'bin_dir = "/root/.containerd/verification-plugin-bin"'
+    dasel put -f /etc/containerd/config.toml -r toml '.plugins.io\.containerd\.image-verifier\.v1\.bindir' -t toml -v 'max_verifiers = 10'
+    dasel put -f /etc/containerd/config.toml -r toml '.plugins.io\.containerd\.image-verifier\.v1\.bindir' -t toml -v 'per_verifier_timeout = "10s"'
 
     touch /opt/sentinel
     systemctl restart containerd
