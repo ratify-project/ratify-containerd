@@ -23,8 +23,8 @@ data:
 
     # Install container version from https://github.com/containerd/containerd/pull/8515
     mkdir -p ~/bin
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/bin/ctr --output ~/bin/ctr
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/bin/containerd --output ~/bin/containerd
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/main/bin/ctr --output ~/bin/ctr
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/main/bin/containerd --output ~/bin/containerd
     mv ~/bin/* /usr/bin/
     chmod +x /usr/bin/ctr
     chmod +x /usr/bin/containerd
@@ -38,20 +38,20 @@ data:
 
     # Install ConfigMap watcher
     mkdir -p ~/.ratify/bin
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/bin/configmap-watcher -o ~/.ratify/bin/configmap-watcher
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/main/bin/configmap-watcher -o ~/.ratify/bin/configmap-watcher
     chmod +x ~/.ratify/bin/configmap-watcher
-    curl -L https://raw.githubusercontent.com/akashsinghal/ratify-containerd/containerd-prototype/configmap-watcher.service -o /etc/systemd/system/configmap-watcher.service
+    curl -L https://raw.githubusercontent.com/akashsinghal/ratify-containerd/main/configmap-watcher.service -o /etc/systemd/system/configmap-watcher.service
     systemctl daemon-reload
     systemctl enable configmap-watcher
     systemctl start configmap-watcher
 
     # Install Ratify binaries
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/bin/ratify -o ~/.ratify/bin/ratify
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/main/bin/ratify -o ~/.ratify/bin/ratify
     chmod +x ~/.ratify/bin/ratify
 
     # Install Ratify Containerd plugin
     mkdir -p ~/.containerd/verification-plugin-bin
-    curl -L https://github.com/akashsinghal/ratify-containerd/raw/containerd-prototype/plugin/ratify.sh -o ~/.containerd/verification-plugin-bin/ratify
+    curl -L https://github.com/akashsinghal/ratify-containerd/raw/main/plugin/ratify.sh -o ~/.containerd/verification-plugin-bin/ratify
     chmod +x ~/.containerd/verification-plugin-bin/ratify
     
     # Update containerd config
