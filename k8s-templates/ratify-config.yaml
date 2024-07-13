@@ -84,8 +84,7 @@ data:
     included_images := ["ghcr.io/ratify-project/ratify/*"]
 
     valid {
-        not is_empty(input)
-        not is_included(input.verifierReports, included_images)
+        not is_included(input, included_images)
     }
 
     valid {
@@ -106,7 +105,7 @@ data:
     }
 
     is_included(reports, includedImages) {
-        img := reports[_].subject
+        img := reports.subject
         inclusion := includedImages[_]
         _matches_inclusion(img, inclusion)
     }
