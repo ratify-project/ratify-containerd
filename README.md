@@ -9,6 +9,8 @@
 
 ## Getting Started
 
+Please refer to exploration [document](docs/overview.md) for more details.
+
 ### Prerequisites
 
 * kubectl
