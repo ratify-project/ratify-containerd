@@ -192,3 +192,7 @@ Multi-tenant workloads can share the underling nodes. If each tenant defines pol
 * How do we make sure image verification does not cause core cluster operations to fail?
 * How do we make sure we can allowlist certain image references?
 * What does the experience look like to install this in a cluster? DaemonSet? Baked into VM image?
+
+## Helpful Links
+
+* K8s community [group discussion](https://groups.google.com/g/kubernetes-sig-node/c/kgpxqcsJ7Vc/m/7X7t_ElsAgAJ) from Sigstore
