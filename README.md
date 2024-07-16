@@ -55,14 +55,13 @@ Please refer to exploration [document](docs/overview.md) for more details.
     kubectl run demo-unsigned --image=ghcr.io/ratify-project/ratify/notary-image:unsigned
     ```
 
-    ![alt text](docs/img/demo-unsigned.png)
-
 7. Check Pod state and verify kublet is failing to pull due to verification plugin rejecting pull
 
     ```bash
     kubectl describe pod demo-unsigned
     ```
 
+    ![alt text](docs/img/demo-unsigned.png)
 
 ## Code of Conduct
 
